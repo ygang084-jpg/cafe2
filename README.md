@@ -16,6 +16,7 @@
 | 지도 | 카카오맵 JS SDK (`libraries=services` 지오코딩 포함) |
 | 엑셀 파싱 | `xlsx` |
 | 인증·DB | Supabase (Auth + Postgres, RLS) |
+| PWA | `vite-plugin-pwa` (Workbox 기반 서비스워커 + 웹 매니페스트) |
 
 ---
 
@@ -68,8 +69,14 @@ src/
 │  ├─ VisitSummary.jsx      # "총 ○곳 중 ○곳 방문" 요약 (F6)
 │  ├─ AuthDialog.jsx        # 로그인/회원가입 팝업
 │  ├─ Header.jsx            # 상단 바 (엑셀 업로드, 로그인/로그아웃)
+│  ├─ OfflineNotice.jsx     # 오프라인 시 "인터넷 연결이 필요합니다" 오버레이 (PWA)
 │  └─ ui/                   # shadcn/ui 기본 컴포넌트
 └─ data/                    # 목업 데이터 · 샘플 엑셀
+public/
+├─ pwa-192x192.png          # PWA 아이콘 (플레이스홀더 — 실제 이미지로 교체)
+├─ pwa-512x512.png          # PWA 아이콘 (일반 + maskable 겸용)
+└─ apple-touch-icon.png     # iOS 홈 화면 아이콘
+vite.config.js              # Vite + VitePWA 플러그인 설정 (매니페스트/서비스워커)
 supabase/
 └─ migrations/0001_visit_notes.sql   # 테이블 + RLS 정책
 ```
@@ -112,6 +119,36 @@ supabase/
 ### F7. 방문 여부에 따른 마커 색 구분 — `components/CafeMap.jsx`
 - 방문 완료: 짙은 에메랄드(`#059669`) + 흰색 체크, 미방문: 앰버(`#f59e0b`) + 흰색 점.
 - 색뿐 아니라 **형태(체크/점)로도 구분**해 색약 접근성을 확보한다. 저장 즉시 색이 갱신된다.
+
+---
+
+## PWA (설치형 웹앱) — `vite.config.js`, `components/OfflineNotice.jsx`
+
+홈 화면에 설치할 수 있는 PWA로 구성했다. 카카오맵·Supabase는 인터넷 연결이 있어야 동작하므로,
+**전 기능 오프라인화는 목표가 아니다.** 앱 셸만 캐시해 설치·초기 로딩을 빠르게 하고,
+오프라인 상태에서는 안내 문구를 보여준다.
+
+### 웹 매니페스트
+- 이름 `우리 동네 카페 지도`, 짧은 이름 `카페지도`, `display: standalone`, `lang: ko`.
+- **테마/배경색은 현재 헤더에 맞춤**: `theme_color`는 헤더 브랜드 강조색 **emerald-600(`#059669`)**,
+  `background_color`는 흰 헤더 바 **`#ffffff`**. `index.html`에도 `theme-color` 메타 태그를 둔다.
+- 아이콘: `192x192`, `512x512`(일반 + `maskable`) — `public/`의 **플레이스홀더**이며 실제 이미지로 교체하면 된다.
+
+### 서비스워커 (Workbox `generateSW`)
+- `registerType: 'autoUpdate'` — 새 빌드가 배포되면 서비스워커를 자동 갱신한다.
+- `injectRegister: 'auto'` — SW 등록 코드를 `index.html`에 자동 주입한다(수동 등록 코드 없음).
+- 프리캐시 대상은 **앱 셸(HTML/JS/CSS/아이콘)뿐**이다(`globPatterns`). 카카오맵·Supabase 등
+  외부 런타임 요청은 캐시하지 않아 온라인에서만 동작한다.
+
+### 오프라인 안내 — `OfflineNotice.jsx`
+- `navigator.onLine`과 `online`/`offline` 이벤트를 구독해 연결이 끊기면
+  **"인터넷 연결이 필요합니다"** 전체 화면 오버레이를 덮어 보여준다(캐시된 화면을 그대로 두지 않음).
+- 지도·로그인·소감 저장이 모두 네트워크 의존이라, 오프라인에서의 혼란을 이 안내로 대신한다.
+
+### 빌드 산출물 & 검증
+- `npm run build` 시 `dist/`에 `manifest.webmanifest`, `sw.js`, `registerSW.js`가 생성된다.
+- `npm run preview`로 띄운 뒤 크롬 주소창 오른쪽 **설치 아이콘(⊕)** 으로 설치할 수 있다.
+  (`localhost`는 보안 컨텍스트로 인정되어 서비스워커가 동작한다.)
 
 ---
 
