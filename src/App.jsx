@@ -7,6 +7,7 @@ import VisitSummary from './components/VisitSummary'
 import VisitedCafes from './components/VisitedCafes'
 import VisitDialog from './components/VisitDialog'
 import AuthDialog from './components/AuthDialog'
+import OfflineNotice from './components/OfflineNotice'
 import { useAuth } from './context/AuthProvider'
 import { parseCafeExcel } from './lib/excel'
 import { geocodeCafes } from './lib/geocode'
@@ -108,6 +109,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
+      <OfflineNotice />
       <Header
         user={user}
         onExcelUpload={handleExcelUpload}
