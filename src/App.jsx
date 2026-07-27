@@ -147,10 +147,23 @@ export default function App() {
         </div>
 
         {cafes.length === 0 && failedCafes.length === 0 ? (
-          <p className="mt-6 text-center text-sm text-gray-400">
-            상단의 <span className="font-medium text-gray-600">엑셀 업로드</span> 버튼으로
-            카페 목록(이름/주소/카테고리)을 올려보세요.
-          </p>
+          user ? (
+            <p className="mt-6 text-center text-sm text-gray-400">
+              상단의 <span className="font-medium text-gray-600">엑셀 업로드</span> 버튼으로
+              카페 목록(이름/주소/카테고리)을 올려보세요.
+            </p>
+          ) : (
+            <p className="mt-6 text-center text-sm text-gray-400">
+              <button
+                type="button"
+                onClick={() => setAuthOpen(true)}
+                className="font-medium text-emerald-700 underline underline-offset-2"
+              >
+                로그인
+              </button>
+              하면 엑셀 카페 목록을 업로드할 수 있어요.
+            </p>
+          )
         ) : (
           <CafeList cafes={displayedCafes} />
         )}

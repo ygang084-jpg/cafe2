@@ -7,16 +7,18 @@ export default function Header({ user, onExcelUpload, onLogin, onLogout }) {
         <h1 className="text-lg font-bold text-gray-900">☕ 우리 동네 카페 지도</h1>
 
         <div className="flex items-center gap-2">
-          {/* 엑셀 업로드 (F1) */}
-          <label className="cursor-pointer rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-            엑셀 업로드
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              className="hidden"
-              onChange={onExcelUpload}
-            />
-          </label>
+          {/* 엑셀 업로드 (F1) — 로그인한 사용자에게만 노출 */}
+          {user && (
+            <label className="cursor-pointer rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+              엑셀 업로드
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                className="hidden"
+                onChange={onExcelUpload}
+              />
+            </label>
+          )}
 
           {/* 로그인 상태에 따라 다르게 표시 (F4) */}
           {user ? (
